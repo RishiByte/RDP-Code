@@ -1,22 +1,72 @@
 import React from 'react';
+import MonacoEditor from '@monaco-editor/react';
+import { useFileSystem } from '../context/FileSystemContext';
+
+const LANGUAGE_MAP = {
+  js: 'javascript',
+  jsx: 'javascript',
+  ts: 'typescript',
+  tsx: 'typescript',
+  css: 'css',
+  html: 'html',
+  json: 'json',
+  md: 'markdown',
+  py: 'python',
+  sh: 'shell',
+};
+
+function getLanguage(filename) {
+  if (!filename) return 'javascript';
+  const ext = filename.split('.').pop().toLowerCase();
+  return LANGUAGE_MAP[ext] ?? 'plaintext';
+}
 
 const EditorArea = () => {
-  return (
-    <div className="flex-1 bg-slate-900 p-4 font-mono text-slate-300 overflow-y-auto">
-      {/* Placeholder content for Editor */}
-      <div className="flex flex-col gap-1 text-sm">
-        <div className="flex"><span className="text-slate-600 mr-4 select-none">1</span><span className="text-purple-400">import</span> <span className="text-blue-400">React</span> <span className="text-purple-400">from</span> <span className="text-green-400">'react'</span><span className="text-slate-400">;</span></div>
-        <div className="flex"><span className="text-slate-600 mr-4 select-none">2</span></div>
-        <div className="flex"><span className="text-slate-600 mr-4 select-none">3</span><span className="text-purple-400">function</span> <span className="text-blue-400">App</span><span className="text-slate-400">()</span> <span className="text-slate-400">{`{`}</span></div>
-        <div className="flex"><span className="text-slate-600 mr-4 select-none">4</span><span className="text-slate-400 ml-4">return (</span></div>
-        <div className="flex"><span className="text-slate-600 mr-4 select-none">5</span><span className="text-slate-400 ml-8">&lt;</span><span className="text-red-400">div</span> <span className="text-purple-400">className</span><span className="text-slate-400">=</span><span className="text-green-400">"app-container"</span><span className="text-slate-400">&gt;</span></div>
-        <div className="flex"><span className="text-slate-600 mr-4 select-none">6</span><span className="text-slate-400 ml-12">Hello Code Editor!</span></div>
-        <div className="flex"><span className="text-slate-600 mr-4 select-none">7</span><span className="text-slate-400 ml-8">&lt;/</span><span className="text-red-400">div</span><span className="text-slate-400">&gt;</span></div>
-        <div className="flex"><span className="text-slate-600 mr-4 select-none">8</span><span className="text-slate-400 ml-4">);</span></div>
-        <div className="flex"><span className="text-slate-600 mr-4 select-none">9</span><span className="text-slate-400">{`}`}</span></div>
-        <div className="flex"><span className="text-slate-600 mr-4 select-none">10</span></div>
-        <div className="flex"><span className="text-slate-600 mr-4 select-none">11</span><span className="text-purple-400">export default</span> <span className="text-blue-400">App</span><span className="text-slate-400">;</span></div>
+  const { files, activeFile, updateFileContent } = useFileSystem();
+
+  const code = activeFile ? (files[activeFile] ?? '') : '';
+  const language = getLanguage(activeFile);
+
+  const handleChange = (value) => {
+    if (activeFile) {
+      updateFileContent(activeFile, value ?? '');
+    }
+  };
+
+  if (!activeFile) {
+    return (
+      <div className="flex-1 bg-slate-900 flex items-center justify-center text-slate-500 font-mono text-sm select-none">
+        No file open — create or select a file from the sidebar.
       </div>
+    );
+  }
+
+  return (
+    <div className="flex-1 min-h-0 bg-[#1e1e1e]">
+      <MonacoEditor
+        height="100%"
+        language={language}
+        value={code}
+        onChange={handleChange}
+        theme="vs-dark"
+        options={{
+          fontSize: 14,
+          fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace",
+          fontLigatures: true,
+          minimap: { enabled: true },
+          scrollBeyondLastLine: false,
+          wordWrap: 'on',
+          lineNumbers: 'on',
+          renderWhitespace: 'selection',
+          cursorBlinking: 'smooth',
+          cursorSmoothCaretAnimation: 'on',
+          smoothScrolling: true,
+          tabSize: 2,
+          automaticLayout: true,
+          padding: { top: 12, bottom: 12 },
+          bracketPairColorization: { enabled: true },
+        }}
+      />
     </div>
   );
 };

@@ -1,6 +1,7 @@
 import React from 'react';
 import MonacoEditor from '@monaco-editor/react';
 import { useFileSystem } from '../context/FileSystemContext';
+import { useTheme } from '../context/ThemeContext';
 
 const LANGUAGE_MAP = {
   js: 'javascript',
@@ -23,6 +24,7 @@ function getLanguage(filename) {
 
 const EditorArea = () => {
   const { files, activeFile, updateFileContent } = useFileSystem();
+  const { isDark } = useTheme();
 
   const code = activeFile ? (files[activeFile] ?? '') : '';
   const language = getLanguage(activeFile);
@@ -33,22 +35,26 @@ const EditorArea = () => {
     }
   };
 
+  const monacoTheme = isDark ? 'vs-dark' : 'vs';
+
   if (!activeFile) {
     return (
-      <div className="flex-1 bg-slate-900 flex items-center justify-center text-slate-500 font-mono text-sm select-none">
-        No file open — create or select a file from the sidebar.
+      <div className="flex-1 activity-bg flex items-center justify-center text-muted font-mono text-sm select-none theme-transition">
+        No file open — create, import, or select a file from the sidebar.
       </div>
     );
   }
 
+  // Monaco dynamically changes its internal theme, but the container relies on our CSS vars
+  // To avoid brief flashes before Monaco's iframe injects, we give the wrapper `console-bg`.
   return (
-    <div className="flex-1 min-h-0 bg-[#1e1e1e]">
+    <div className="flex-1 min-h-0 console-bg theme-transition">
       <MonacoEditor
         height="100%"
         language={language}
         value={code}
         onChange={handleChange}
-        theme="vs-dark"
+        theme={monacoTheme}
         options={{
           fontSize: 14,
           fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace",
